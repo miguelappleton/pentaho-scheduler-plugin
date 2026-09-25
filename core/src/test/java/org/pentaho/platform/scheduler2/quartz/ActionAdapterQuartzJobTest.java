@@ -13,6 +13,7 @@
 package org.pentaho.platform.scheduler2.quartz;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +38,7 @@ import org.pentaho.platform.api.engine.IPentahoObjectFactory;
 import org.pentaho.platform.api.engine.ISecurityHelper;
 import org.pentaho.platform.api.scheduler2.IBlockoutManager;
 import org.pentaho.platform.api.scheduler2.IScheduler;
+import org.pentaho.platform.api.scheduler2.SimpleJobTrigger;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.engine.security.SecurityHelper;
 import org.pentaho.platform.scheduler2.blockout.BlockoutAction;
@@ -141,8 +143,14 @@ public class ActionAdapterQuartzJobTest {
     }
 
     ArgumentCaptor<Map<String, Object>> paramsCaptor = paramsCaptor();
-    verify( scheduler ).createJob( eq( "testJob" ), eq( action.getClass() ), paramsCaptor.capture(), any(), any() );
+    ArgumentCaptor<SimpleJobTrigger> triggerCaptor = ArgumentCaptor.forClass( SimpleJobTrigger.class );
+    verify( scheduler ).createJob( eq( "testJob" ), eq( action.getClass() ), paramsCaptor.capture(),
+      triggerCaptor.capture(), any() );
     assertEquals( Boolean.TRUE, paramsCaptor.getValue().get( QuartzScheduler.RESERVEDMAPKEY_RESTART_FLAG ) );
+    assertEquals( "RUN_ONCE", triggerCaptor.getValue().getUiPassParam() );
+    assertEquals( 0, triggerCaptor.getValue().getRepeatCount() );
+    assertEquals( 1, triggerCaptor.getValue().getRepeatInterval() );
+    assertNull( triggerCaptor.getValue().getEndTime() );
   }
 
   @Test
